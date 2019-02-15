@@ -23,6 +23,17 @@ public:
 
 	String getName() { return _name; }
 	unsigned long getRecord() { return _record; }
+	static String recordString(unsigned long time) 
+	{ 
+		String ret = "";
+		if (time >= 60000)
+			ret += String(time / 60000) + " min ";
+		ret += String((time / 1000)%60);
+		if (time < 60000)
+			ret += "." + String(time % 1000);
+		ret += " sec";
+		return ret;
+	}
 
 	static int compare(Result &a, Result &b)
 	{
