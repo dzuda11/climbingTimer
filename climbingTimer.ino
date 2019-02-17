@@ -19,6 +19,7 @@ const char *ssid = "AONS Speed climbing";
 const char *password = "";
 
 ESP8266WebServer server(80);
+
 LinkedList<Result> everList;
 LinkedList<Result> todayList;
 
@@ -39,7 +40,6 @@ void setup()
 	WiFi.mode(WIFI_AP);
 	WiFi.softAPConfig(IPAddress(10, 10, 10, 10), IPAddress(10, 10, 10, 10), IPAddress(255, 255, 255, 0));
 	WiFi.softAP(ssid);
-
 	server.on("/", handleRoot);
 	server.on("/result", handleResult);
 	server.on("/data", handleData);
@@ -178,7 +178,8 @@ void checkAndWrite (String name, LinkedList<Result> &list)
 	}
 	else if (list.get(index).getRecord() > data)
 	{
-		list.get(index).setRecord(data);
+		list.remove(index);
+		list.add(Result(name, data));
 		list.sort(&Result::compare);
 	}
 }

@@ -5,7 +5,7 @@ const char homePage[] PROGMEM = R"=====(
 
 <head>
 	<meta charset="UTF-8">
-	<title>AONS Speeed climbing</title>
+	<title>AONS Speed climbing</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="theme-color" content="#25BE9F" />
 	<style>

@@ -4,7 +4,7 @@ const char resultHeader[] PROGMEM = R"=====(
 <html >
 <head>
   <meta charset="UTF-8">
-  <title>Responsive Table</title>
+  <title>Rezultati</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=0">
   <meta name="theme-color" content="#25BE9F" />
   <style>
@@ -97,6 +97,22 @@ const char resultHeader[] PROGMEM = R"=====(
       color: white;
       text-align: center;
     }
+
+    input[type=submit] {
+			background-color: rgb(240, 248, 255, 0.25);
+			border-radius: 8px;
+			border: none;
+			color: white;
+			padding: 5px 11px;
+			text-align: center;
+			text-decoration: none;
+			display: inline-block;
+			font-size: 16px;
+			margin: 4px 2px;
+			cursor: pointer;
+			min-height: 10px;
+			min-width: 40px;
+		}
     </style>
 
   
@@ -104,6 +120,7 @@ const char resultHeader[] PROGMEM = R"=====(
 </head>
 
 <body>
+  <form action="/"> <input type="submit" value="Početna" /> </form>
   <h1>Rezultati</h1>
   <div>
     <table><thead><th id="dayBt" class="left" onclick='showToday(event)'>Danas</th> <th id="allBt" class="right" onclick='showAll(event)'>Svih vremena</th> </thead></table>

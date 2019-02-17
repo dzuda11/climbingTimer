@@ -5,7 +5,7 @@ const char saveTop[] PROGMEM = R"=====(
 
 <head>
 	<meta charset="UTF-8">
-	<title>Responsive Table</title>
+	<title>Sačuvaj rezultat</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=0">
 	<meta name="theme-color" content="#25BE9F" />
 	<style>
