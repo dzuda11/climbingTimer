@@ -6,12 +6,14 @@
 #include "src/LinkedList.h"
 #include "src/Taster.hpp"
 
-
 #include "src/pages/resultHeader.h"
 #include "src/pages/homePage.h"
 #include "src/pages/resultMiddle.h"
 #include "src/pages/resultFooter.h"
 #include "src/pages/resultItem.h"
+#include "src/pages/saveTop.h"
+#include "src/pages/saveEnd.h"
+#include "src/pages/saveAndGo.h"
 
 const char *ssid = "AONS Speed climbing";
 const char *password = "";
@@ -27,8 +29,8 @@ Taster readyBt(14);
 //RGBLED footLED(12, 13, 15);
 //RGBLED handLED(16, 5, 4);
 
-bool finish = false;
-unsigned long data = -1;
+bool finish = true;
+unsigned long data = 0;
 
 void setup()
 {
@@ -40,6 +42,9 @@ void setup()
 
 	server.on("/", handleRoot);
 	server.on("/result", handleResult);
+	server.on("/data", handleData);
+	server.on("/save", handleSave);
+	server.on("/saveAndGo", handleSaveAndGo);
 	server.begin();
 	Serial.println("Ready!\n\n");
 }
@@ -47,7 +52,7 @@ void loop()
 {
 	while (!readyBt.on())
 		server.handleClient();
-
+	finish = false;
 	if (!foot.on())
 	{
 		Serial.println("Put your foot on START! # footLED red");
@@ -71,12 +76,19 @@ void loop()
 	Serial.print("#leds green\n\n");
 	while (!readyBt.on())
 		server.handleClient();
-	finish = false;
+	data = 0;
 }
 
 void handleRoot()
 {
-	server.send(200, "text/plain", "hello");
+	server.send(200, "text/html", homePage);
+}
+
+void handleData()
+{
+	// {"finish":1, "time":2560}
+	String str = "{\"finish\":" + String(finish) + ", \"time\":" + String(data) + "}";
+	server.send(200, "text/html", str);
 }
 
 void handleResult()
@@ -84,27 +96,14 @@ void handleResult()
 	server.send(200, "text/html", generateResults());
 }
 
-
-
 String generateResults()
 {
-	Result a("Mile", 62520);
-	Result b("Nikola", 42520);
-	Result c("Sara", 520);
-	Result d("Spasoje", 0);
-	Result e("milisav", 4153);
-	todayList.add(a);
-	todayList.add(b);
-	todayList.add(c);
-	todayList.add(d);
-	todayList.add(e);
-	todayList.sort(&Result::compare);
 
 	String ret = resultHeader;
 
 	ret += itemsList(todayList);
 	ret += resultMiddle;
-	ret += itemsList(todayList);
+	ret += itemsList(everList);
 
 	ret += resultFooter;
 	return ret;
@@ -113,18 +112,18 @@ String generateResults()
 String itemsList(LinkedList<Result> &list)
 {
 	String ret = "";
-	for (unsigned int i = 0; i< list.size(); i++)
+	for (unsigned int i = 0; i < list.size(); i++)
 	{
 		String item = resultItem;
 		item.replace("{n}", String(i + 1));
 		item.replace("{name}", list.get(i).getName());
 		item.replace("{time}", Result::recordString(list.get(i).getRecord()));
 		unsigned long diff = list.get(i).getRecord() - list.get(0).getRecord();
-		if(diff != 0)
+		if (diff != 0)
 		{
 			if (diff < 60000)
 				item.replace("{diff}", "-" + Result::recordString(diff));
-			else 
+			else
 				item.replace("{diff}", "mnogo");
 		}
 		else
@@ -134,4 +133,52 @@ String itemsList(LinkedList<Result> &list)
 		ret += item;
 	}
 	return ret;
+}
+
+void handleSave()
+{
+	server.send(200, "text/html", saveTop + Result::recordString(data) + saveEnd);
+}
+
+void handleSaveAndGo()
+{
+	String name = "";
+	if (server.args() > 0)
+	{
+		for (uint8_t i = 0; i < server.args(); i++)
+		{
+			if (server.argName(i) == "name")
+			{
+				name = server.arg(i);
+			}
+		}
+		checkAndWrite (name, todayList);
+		checkAndWrite (name, everList);
+		data = 0;
+	}
+
+	server.send(200, "text/html", saveAndGo);
+}
+
+void checkAndWrite (String name, LinkedList<Result> &list)
+{
+	unsigned int index = -1;
+	for (unsigned int i = 0; i < list.size(); i++)
+	{
+		if (list.get(i).getName() == name)
+		{
+			index = i;
+			break;
+		}
+	}
+	if (index == -1)
+	{
+		list.add(Result(name, data));
+		list.sort(&Result::compare);
+	}
+	else if (list.get(index).getRecord() > data)
+	{
+		list.get(index).setRecord(data);
+		list.sort(&Result::compare);
+	}
 }

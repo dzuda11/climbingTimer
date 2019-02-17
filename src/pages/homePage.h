@@ -5,7 +5,7 @@ const char homePage[] PROGMEM = R"=====(
 
 <head>
 	<meta charset="UTF-8">
-	<title>Rezultati</title>
+	<title>AONS Speeed climbing</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="theme-color" content="#25BE9F" />
 	<style>
@@ -70,9 +70,7 @@ const char homePage[] PROGMEM = R"=====(
 
 <body>
 
-	<p class="timerTxt">08.152</p>
-
-
+	<p id="mile" class="timerTxt">08.152</p>
 	<center>
 		<div id="but">
 			<button id="save">Sačuvaj</button>
@@ -80,6 +78,71 @@ const char homePage[] PROGMEM = R"=====(
 		</div>
 	</center>
 	</div>
+
+	<script>
+		var myTimedAction;
+		var millis;
+		var seted = false;
+
+		var x = setInterval(function() {loadData("data",controlTimer)}, 100);
+   		function loadData(url, callback){
+   		var xhttp = new XMLHttpRequest();
+   		xhttp.onreadystatechange = function(){
+   		 if(this.readyState == 4 && this.status == 200){
+   		 callback.apply(xhttp);
+   		 }
+   		};
+   		xhttp.open("GET", url, true);
+   		xhttp.send();
+   		}
+		
+   		function controlTimer(){
+			var myObj = JSON.parse(this.responseText);
+			if(myObj.finish == 1 && myObj.time == 0){
+				document.getElementById("mile").innerHTML = "--.---";
+			}
+			if(myObj.finish == 0 && myObj.time == 0){
+				document.getElementById("mile").innerHTML = "00.000";
+			}
+			if(myObj.finish == 0 && myObj.time != 0){
+				if (seted == false) {
+					millis = myObj.time;
+					myTimedAction = setInterval(timerRun, 17);
+					seted = true;
+				}
+			}
+			if(myObj.finish == 1 && myObj.time != 0){
+				clearInterval(myTimedAction);
+				seted = false;
+				millis = myObj.time;
+				parseTime();
+			}
+   		}
+		function timerRun() {
+			millis += 17;
+			parseTime();
+		}
+		
+		function parseTime(){
+			var milliseconds = parseInt((millis % 1000)),
+  			  seconds = parseInt((millis / 1000) % 60),
+  			  minutes = parseInt((millis / (1000 * 60)) % 60);
+
+  			minutes = (minutes < 10) ? "0" + minutes : minutes;
+  			seconds = (seconds < 10) ? "0" + seconds : seconds;
+			milliseconds = (milliseconds < 10) ? "0" + milliseconds : milliseconds;
+            milliseconds = (milliseconds < 100) ? "0" + milliseconds : milliseconds;
+
+  			var ret = "";
+            if (minutes > 0){
+            	ret += minutes + ":";
+                }
+            ret += seconds + "." + milliseconds;
+			document.getElementById("mile").innerHTML = ret;
+            }
+
+	</script>
+
 </body>
 
 </html>

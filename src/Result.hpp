@@ -21,16 +21,27 @@ public:
 		_record = source._record;
 	}
 
+	void setRecord(unsigned long time) { _record = time; }
 	String getName() { return _name; }
 	unsigned long getRecord() { return _record; }
 	static String recordString(unsigned long time) 
 	{ 
 		String ret = "";
+		unsigned int milliSec = time % 1000;
 		if (time >= 60000)
 			ret += String(time / 60000) + " min ";
 		ret += String((time / 1000)%60);
 		if (time < 60000)
-			ret += "." + String(time % 1000);
+		{
+			ret += ".";
+			if (milliSec < 10)
+				ret += "0";
+
+			if (milliSec < 100)
+				ret += "0";
+			ret += String(milliSec);
+		}
+			
 		ret += " sec";
 		return ret;
 	}
