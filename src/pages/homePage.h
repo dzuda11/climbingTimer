@@ -9,7 +9,7 @@ const char homePage[] PROGMEM = R"=====(
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="theme-color" content="#25BE9F" />
 	<style>
-		button{
+		input {
 			background-color: rgb(240, 248, 255, 0.25);
 			border-radius: 8px;
 			border: none;
@@ -25,12 +25,7 @@ const char homePage[] PROGMEM = R"=====(
 			min-width: 40px;
 		}
 
-		#save {
-			opacity: 1;
-			cursor: allowed;
-		}
-
-		#result {
+		input[type="submit"]:disabled {
 			opacity: 0.6;
 			cursor: not-allowed;
 		}
@@ -72,9 +67,11 @@ const char homePage[] PROGMEM = R"=====(
 
 	<p id="mile" class="timerTxt">08.152</p>
 	<center>
-		<div id="but">
-			<button id="save">Sačuvaj</button>
-			<button id="result">Rezultati</button>
+		<div style="display: inline-block">
+			<form action="/save"> <input id="saveBt" type="submit" value="Sačuvaj" disabled /> </form>
+		</div>
+		<div style="display: inline-block">
+			<form action="/result"> <input id="resultBt" type="submit" value="Rezultati" /> </form>
 		</div>
 	</center>
 	</div>
@@ -100,15 +97,24 @@ const char homePage[] PROGMEM = R"=====(
 			var myObj = JSON.parse(this.responseText);
 			if(myObj.finish == 1 && myObj.time == 0){
 				document.getElementById("mile").innerHTML = "--.---";
+
+				document.getElementById('saveBt').disabled = true;
+				document.getElementById('resultBt').disabled = false;
 			}
 			if(myObj.finish == 0 && myObj.time == 0){
 				document.getElementById("mile").innerHTML = "00.000";
+
+				document.getElementById('saveBt').disabled = true;
+				document.getElementById('resultBt').disabled = true;
 			}
 			if(myObj.finish == 0 && myObj.time != 0){
 				if (seted == false) {
 					millis = myObj.time;
 					myTimedAction = setInterval(timerRun, 17);
 					seted = true;
+
+					document.getElementById('saveBt').disabled = true;
+					document.getElementById('resultBt').disabled = true;
 				}
 			}
 			if(myObj.finish == 1 && myObj.time != 0){
@@ -116,6 +122,9 @@ const char homePage[] PROGMEM = R"=====(
 				seted = false;
 				millis = myObj.time;
 				parseTime();
+
+				document.getElementById('saveBt').disabled = false;
+				document.getElementById('resultBt').disabled = false;
 			}
    		}
 		function timerRun() {
