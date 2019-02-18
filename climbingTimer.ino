@@ -2,9 +2,12 @@
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 
+#include <FS.h>
+
 #include "src/Result.hpp"
 #include "src/LinkedList.h"
 #include "src/Taster.hpp"
+#include "src/Laser.hpp"
 
 #include "src/pages/resultHeader.h"
 #include "src/pages/homePage.h"
@@ -18,17 +21,19 @@
 const char *ssid = "AONS Speed climbing";
 const char *password = "";
 
+const char *filePath = "everList.txt";
+
 ESP8266WebServer server(80);
 
 LinkedList<Result> everList;
 LinkedList<Result> todayList;
 
-Taster hand(5);
-Taster foot(4);
+Laser hand(5);
+Laser foot(4);
 Taster readyBt(14);
 
-//RGBLED footLED(12, 13, 15);
-//RGBLED handLED(16, 5, 4);
+//RGBLED footLED on 12  D6
+//RGBLED handLED on 13  D7
 
 bool finish = true;
 unsigned long data = 0;
@@ -36,6 +41,12 @@ unsigned long data = 0;
 void setup()
 {
 	Serial.begin(115200);
+
+	// if(!SPIFFS.begin())
+	// 	Serial.println("faled to mount spiffs");
+	if (readyBt.hold(3000))
+		//clearEverFile();
+	//loadEverList();
 
 	WiFi.mode(WIFI_AP);
 	WiFi.softAPConfig(IPAddress(10, 10, 10, 10), IPAddress(10, 10, 10, 10), IPAddress(255, 255, 255, 0));
@@ -152,16 +163,19 @@ void handleSaveAndGo()
 				name = server.arg(i);
 			}
 		}
-		checkAndWrite (name, todayList);
-		checkAndWrite (name, everList);
+		checkAndWrite(name, todayList);
+		if(checkAndWrite(name, everList))
+			// saveToFile();
+		
 		data = 0;
 	}
 
 	server.send(200, "text/html", saveAndGo);
 }
 
-void checkAndWrite (String name, LinkedList<Result> &list)
+bool checkAndWrite(String name, LinkedList<Result> &list)
 {
+	bool ret = false;
 	unsigned int index = -1;
 	for (unsigned int i = 0; i < list.size(); i++)
 	{
@@ -175,11 +189,62 @@ void checkAndWrite (String name, LinkedList<Result> &list)
 	{
 		list.add(Result(name, data));
 		list.sort(&Result::compare);
+		ret = true;
 	}
 	else if (list.get(index).getRecord() > data)
 	{
 		list.remove(index);
 		list.add(Result(name, data));
 		list.sort(&Result::compare);
+		ret = true;
 	}
+	return ret;
+}
+
+/// Function below will compile but SPIFFS doesn't work on my ESP
+
+void clearEverFile()
+{
+	SPIFFS.remove(filePath);
+}
+
+void loadEverList()
+{
+	File f = SPIFFS.open(filePath, "r");
+	if (f)
+	{
+		everList.clear();
+		String s, t;
+		while((s=f.readStringUntil('\n')) != "" )
+		{
+			t = f.readStringUntil('\n');
+			char ta[11];
+			t.toCharArray(ta, 11);
+			Serial.print(s + "  "); Serial.println(strtoul(ta, NULL, 10));
+			everList.add(Result(s, strtoul(ta, NULL, 10)));
+		}
+		f.close();
+	}
+	else
+	{
+		Serial.println("Failed to load everList");
+	}
+}
+
+void saveToFile()
+{
+	File f = SPIFFS.open(filePath, "w");
+	if (f)
+	{
+		for (unsigned int i = 0; i < everList.size(); i++)
+		{
+			f.println(everList.get(i).getName());
+			f.println(String(everList.get(i).getRecord()));
+		}
+	}
+	else
+	{
+		Serial.println("Failed to write everList to file");
+	}
+
 }
