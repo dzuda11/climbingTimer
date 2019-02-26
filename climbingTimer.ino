@@ -248,3 +248,8 @@ void saveToFile()
 	}
 
 }
+
+void glupost()
+{
+	Serial.println("Glupsoti");
+}
